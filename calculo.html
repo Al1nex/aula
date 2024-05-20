@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento Financeiro</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            position: relative;
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-image: url('IMG/imagem de fundo pag 2.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-custom {
+            background-color: #000000;
+            border-bottom: 10px solid #daa520;
+            padding: 1%;
+            /* Reduzindo o padding */
+            height: 130px;
+        }
+
+        .logo {
+            width: 100px;
+            /* Largura da logo */
+            height: auto;
+            /* Altura automática */
+            left: 20px;
+            /* Mover para o lado esquerdo */
+            top: 20px;
+            /* Mover para cima */
+            position: absolute;
+            /* Posição absoluta */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px 10px;
+            /* Reduzindo o padding */
+        }
+
+        .question {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: black;
+            /* Alterado de azul para preto */
+        }
+
+        .input-field {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .input-field input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            margin-right: 10px;
+        }
+
+        .value-display {
+            color: #333;
+            background-color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+        }
+
+        .income-section {
+            margin-top: 50px;
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Ajustando a cor de fundo */
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .income-field {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .income-field input[type="text"],
+        .income-field input[type="number"] {
+            width: 200px;
+            padding: 8px;
+            margin-right: 10px;
+            color: black;
+            /* Alterado de azul para preto */
+        }
+
+        .income-button {
+            background-color: #000000;
+            /* Alterando a cor do botão */
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 0px;
+            cursor: pointer;
+            margin-right: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .income-button:hover {
+            background-color: #333333;
+            /* Alterando a cor de fundo ao passar o mouse */
+        }
+
+        .transactions-list {
+            margin-top: 30px;
+            color: #333;
+        }
+
+        .form-group-box label {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-sm navbar-dark bg-custom navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="IMG/logo.jpg" alt="Logo" class="logo">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <div class="container">
+        <!-- Gerenciamento Financeiro -->
+        <div class="income-section">
+            <div class="question">Qual é o valor da seu renda?</div> <!-- Alterado de "salário" para "renda" -->
+            <div class="input-field">
+                <input id="wage" type="number" placeholder="R$" min="0" step="0.01" oninput="checkValue()">
+                <button class="income-button" onclick="addWage()">Enviar</button>
+            </div>
+            <div id="wageDisplay" class="value-display" style="display:none;"></div>
+
+            <!-- Fixed Income Section -->
+            <div class="income-section">
+                <div class="question">Criar despesa fixa:</div>
+                <div id="fixedIncomeFields">
+                    <!-- Fixed income fields will be added dynamically -->
+                </div>
+                <button class="income-button" onclick="addFixedIncome()">Adicionar despesa Fixa</button>
+            </div>
+
+            <!-- Variable Income Section -->
+            <div class="income-section">
+                <div class="question">Criar renda variável:</div>
+                <div id="variableIncomeFields">
+                    <!-- Variable income fields will be added dynamically -->
+                </div>
+                <button class="income-button" onclick="addVariableIncome()">Adicionar Variável</button>
+            </div>
+
+            <!-- Formulário de Gerenciamento Financeiro -->
+            <form id="finance-form">
+                <!-- Seu formulário existente permanece o mesmo -->
+            </form>
+            <div class="transactions-list">
+                <div id="transactions"></div>
+                <!-- Mostrar o valor restante após os gastos -->
+                <div id="remaining"></div>
+            </div>
+        </div>
+        <!-- Botão de impressão -->
+        <br><button id="btn_imp">Imprimir</button></br>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        // Arrays para armazenar rendas fixas e variáveis
+        var fixedIncomesData = [];
+        var variableIncomesData = [];
+
+        function checkValue() {
+            var wage = parseFloat(document.getElementById("wage").value);
+            var fixedIncomeName = document.getElementById("rendafixa").value.toLowerCase();
+
+            if (wage < 50 && fixedIncomeName === "energia") {
+                alert("Parabéns!");
+            }
+        }
+
+        function addWage() {
+            var wage = document.getElementById("wage").value;
+            var wageDisplay = document.getElementById("wageDisplay");
+            wageDisplay.innerHTML = "Renda: R$ " + wage; // Alterado de "Salário" para "Renda"
+            wageDisplay.style.display = "block";
+            // Calcular e exibir o valor restante após deduzir os gastos
+            updateRemaining();
+        }
+
+        function addFixedIncome() {
+            var fixedIncomeFields = document.getElementById("fixedIncomeFields");
+            var field = document.createElement("div");
+            field.classList.add("income-field");
+            field.innerHTML = '<input type="text" id="rendafixa" placeholder="Nome da renda fixa"> <input type="number" placeholder="Valor"> <button class="income-button" onclick="saveIncome(this, \'fixed\')">Salvar</button> <button class="income-button" onclick="editIncome(this)">Editar</button> <button class="income-button" onclick="deleteIncome(this)">Deletar</button>';
+            fixedIncomeFields.appendChild(field);
+        }
+
+        function addVariableIncome() {
+            var variableIncomeFields = document.getElementById("variableIncomeFields");
+            var field = document.createElement("div");
+            field.classList.add("income-field");
+            field.innerHTML = '<input type="text" placeholder="Nome da renda variável"> <input type="number" placeholder="Valor"> <button class="income-button" onclick="saveIncome(this, \'variable\')">Salvar</button> <button class="income-button" onclick="editIncome(this)">Editar</button> <button class="income-button" onclick="deleteIncome(this)">Deletar</button>';
+            variableIncomeFields.appendChild(field);
+        }
+
+        function saveIncome(button, type) {
+            var field = button.parentElement;
+            var inputs = field.querySelectorAll("input");
+            var name = inputs[0].value;
+            var value = parseFloat(inputs[1].value);
+
+            if (type === 'fixed') {
+                fixedIncomesData.push({ name: name, value: value });
+            } else if (type === 'variable') {
+                variableIncomesData.push({ name: name, value: value });
+            }
+            // Calcular e exibir o valor restante após deduzir os gastos
+            updateRemaining();
+        }
+
+        function editIncome(button) {
+            var field = button.parentElement;
+            var inputs = field.querySelectorAll("input");
+            var name = inputs[0].value;
+            var value = parseFloat(inputs[1].value);
+
+            var index;
+            if (field.parentElement.id === "fixedIncomeFields") {
+                index = fixedIncomesData.findIndex(function (income) {
+                    return income.name === name && income.value === value;
+                });
+                if (index !== -1) {
+                    var newName = prompt("Digite o novo nome da renda fixa:", name);
+                    var newValue = parseFloat(prompt("Digite o novo valor da renda fixa:", value));
+                    if (newName !== null && !isNaN(newValue)) {
+                        fixedIncomesData[index].name = newName;
+                        fixedIncomesData[index].value = newValue;
+                        // Atualizar os campos de entrada com os novos valores
+                        inputs[0].value = newName;
+                        inputs[1].value = newValue;
+                        updateRemaining();
+                    }
+                }
+            } else if (field.parentElement.id === "variableIncomeFields") {
+                index = variableIncomesData.findIndex(function (income) {
+                    return income.name === name && income.value === value;
+                });
+                if (index !== -1) {
+                    var newName = prompt("Digite o novo nome da renda variável:", name);
+                    var newValue = parseFloat(prompt("Digite o novo valor da renda variável:", value));
+                    if (newName !== null && !isNaN(newValue)) {
+                        variableIncomesData[index].name = newName;
+                        variableIncomesData[index].value = newValue;
+                        // Atualizar os campos de entrada com os novos valores
+                        inputs[0].value = newName;
+                        inputs[1].value = newValue;
+                        updateRemaining();
+                    }
+                }
+            }
+        }
+
+        function deleteIncome(button) {
+            var field = button.parentElement;
+            var type;
+            if (field.parentElement.id === "fixedIncomeFields") {
+                type = 'fixed';
+            } else if (field.parentElement.id === "variableIncomeFields") {
+                type = 'variable';
+            }
+
+            // Remover o valor da renda dos dados correspondentes
+            var name = field.querySelector("input[type='text']").value;
+            var value = parseFloat(field.querySelector("input[type='number']").value);
+            if (type === 'fixed') {
+                var index = fixedIncomesData.findIndex(function (income) {
+                    return income.name === name && income.value === value;
+                });
+                if (index !== -1) {
+                    fixedIncomesData.splice(index, 1); // Remove o item do array
+                    field.remove(); // Remove o campo do HTML
+                    updateRemaining(); // Atualiza o valor restante
+                }
+            } else if (type === 'variable') {
+                var index = variableIncomesData.findIndex(function (income) {
+                    return income.name === name && income.value === value;
+                });
+                if (index !== -1) {
+                    variableIncomesData.splice(index, 1); // Remove o item do array
+                    field.remove(); // Remove o campo do HTML
+                    updateRemaining(); // Atualiza o valor restante
+                }
+            }
+        }
+
+        // Função para calcular e exibir o valor restante após deduzir os gastos
+        function updateRemaining() {
+            var wage = parseFloat(document.getElementById("wage").value);
+
+            var remainingDisplay = document.getElementById("remaining");
+            remainingDisplay.innerHTML = ""; // Limpa o conteúdo atual do elemento
+
+            // Exibir rendas fixas
+            remainingDisplay.innerHTML += "<p><strong>Rendas Fixas</strong></p>";
+            fixedIncomesData.forEach(function (income) {
+                var sustainabilityTip = getSustainabilityTip(income.name);
+                // Adiciona o tipo de renda (fixa) ao lado do nome da renda
+                remainingDisplay.innerHTML += "<p>Renda fixa - " + income.name + ": R$ " + income.value + sustainabilityTip + "</p>";
+            });
+
+            // Exibir rendas variáveis
+            remainingDisplay.innerHTML += "<p><strong>Rendas Variáveis</strong></p>";
+            variableIncomesData.forEach(function (income) {
+                var sustainabilityTip = getSustainabilityTip(income.name);
+                // Adiciona o tipo de renda (variável) ao lado do nome da renda
+                remainingDisplay.innerHTML += "<p>Renda variável - " + income.name + ": R$ " + income.value + sustainabilityTip + "</p>";
+            });
+
+            var totalFixedIncome = fixedIncomesData.reduce((acc, income) => acc + income.value, 0);
+            var totalVariableIncome = variableIncomesData.reduce((acc, income) => acc + income.value, 0);
+
+            var remaining = wage - totalFixedIncome - totalVariableIncome;
+            remainingDisplay.innerHTML += "<p><strong>Total Restante: R$ " + remaining.toFixed(2) + "</strong></p>";
+        }
+
+        // Função para obter uma dica sustentável com base no nome da renda
+        function getSustainabilityTip(incomeName) {
+            // Mapeamento de termos e dicas sustentáveis correspondentes
+            var sustainabilityTips = {
+
+                "energia": " - Apague as luzes quando não estiver no cômodo.",
+                "celpe": " - Apague as luzes quando não estiver no cômodo.",
+                "água": " - Tome banhos mais curtos para economizar água.",
+                "compesa": " - Tome banhos mais curtos para economizar água.",
+                "transporte": " - Opte por meios de transporte mais sustentáveis, como andar de bicicleta ou usar transporte público.",
+                "alimentação": " - Reduza o consumo de carne para diminuir a pegada de carbono.",
+                "comida": " - Reduza o consumo de carne para diminuir a pegada de carbono.",
+                "luz": " - Apague as luzes quando não estiver no cômodo.",
+                "feira": " - Compre apenas o necessário e o que realmente usa."
+
+
+                // Adicione mais termos e dicas conforme necessário
+            };
+
+            // Verificar se o nome da renda contém algum dos termos e retornar a dica correspondente
+            for (var term in sustainabilityTips) {
+                if (incomeName.toLowerCase().includes(term)) {
+                    return " (" + sustainabilityTips[term] + ")";
+                }
+            }
+            return ""; // Retorna uma string vazia se nenhum termo correspondente for encontrado
+        }
+
+        // Evento de clique para o botão de impressão
+        document.getElementById("btn_imp").addEventListener("click", function () {
+            window.print(); // Executa a função de impressão
+        });
+    </script>
+</body>
+
+</html>
